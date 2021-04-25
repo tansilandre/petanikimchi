@@ -15,11 +15,11 @@ export default {
       // this.res = await $http.$get('https://api.gopax.co.kr/trading-pairs/XRP-KRW/ticker')
 
       axios
-        .get("https://api.gopax.co.kr/trading-pairs/XRP-KRW/ticker", {
-          crossDomain: true,
+        .get("http://185.201.8.243:3000/api/kimchi?coin=xrp", {
         })
         .then(function() {
           this.res = res.data;
+          console.log(this.res)
         })
         .catch(function(error) {});
     }

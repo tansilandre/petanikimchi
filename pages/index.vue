@@ -6,10 +6,11 @@
       v-model="selectedRemittance"
       class="form-select my-3"
       aria-label="Default select example"
+      @change="getAllCoins(coins, selectedRemittance)"
     >
-      <option value="1" selected>Cukong {{ remittance.cukong }} %</option>
-      <option value="1">Sentbe {{ remittance.sentbe }} %</option>
-      <option value="2">Hanpass {{ remittance.hanpass }} %</option>
+      <option v-for="item in remittance" :key="item.name" :value="item.value">{{
+        `${item.name} ${item.value}%`
+      }}</option>
     </select>
 
     <table class="mt-2 table small">
@@ -24,12 +25,12 @@
       </thead>
 
       <tbody>
-        <tr v-for="item in tableData" :key="item.id">
+        <tr v-for="item in tableData" :key="item.coinUpper">
           <th scope="row">1</th>
-          <td>{{ item.id }}</td>
-          <td>{{ item.kimchi ? item.kimchi : "-" }}</td>
-          <td>{{ item.indodax }}</td>
-          <td>{{ item.gopax }}</td>
+          <td>{{ item.coinUpper }}</td>
+          <td>{{ item.kimchi ? item.kimchi.toFixed(2) : "-" }}</td>
+          <td>{{ item.prices.indodax ? "Rp" +  formatPrice(item.prices.indodax)  : "-" }}</td>
+          <td>{{ item.prices.gopax ? formatPrice(item.prices.gopax)+ " 원" : "-" }}</td>
         </tr>
       </tbody>
     </table>
@@ -37,104 +38,55 @@
 </template>
 
 <script>
+
 import axios from "axios";
 export default {
   created() {
-    // this.coin.forEach(coin => {
-    //   this.getCoinValue(coin);
-    // });
-    this.getCoinValue(this.coin[0]);
+    this.getAllCoins(this.coins,this.remittance)
   },
   methods: {
-    calculateKimchi(remittance, coin, indodaxPrice, gopaxPrice) {
-      let modal = 100000000;
-      let hasil;
-      let kimchi;
-
-      // 0. transfer money to indodax (6500 + 5000)
-      hasil = 100000000 - 11500;
-
-      // 1. buy from indodax (300rb)
-      hasil = hasil - (0.3 / 100) * hasil;
-      hasil = hasil / indodaxPrice;
-
-      // 2. transfer to gopax
-      hasil = -coin.fee;
-
-      // 3. sell coin  in gopax
-      hasil = hasil * gopaxPrice;
-      hasil = hasil - (hasil * 0.2) / 100;
-
-      // 4. withdraw  from gopax
-      hasil - 1000 * remittance;
-      kimchi = ((hasil - modal) / modal) * 100;
+    formatPrice(price){
+      let val = (price/1).toFixed(2).replace(".",",")
+      return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
     },
-
-    getCoinValue(coin) {
-      let priceIndodax = 0;
-      let priceGopax = 0;
-      let that = this;
-
-      let one = this.linkIndodax(coin.name);
-      let two = this.linkGopax(coin.name);
-
-      const requestOne = axios.get(one);
-      const requestTwo = axios.get(two);
-
-      axios
-        .all([requestOne, requestTwo])
-        .then(
-          axios.spread((...responses) => {
-            const responseOne = responses[0];
-            const responseTwo = responses[1];
-            priceIndodax = responseOne.data.ticker.sell;
-            priceGopax = responseTwo.data.bid;
-            that.tableData.push({
-              id: coin.name,
-              indodax: that.priceIndodax,
-              gopax: that.priceGopax,
-              kimchi: that.calculateKimchi(
-                that.selectedRemittance,
-                coin.fee,
-                priceIndodax,
-                priceGopax
-              )
-            });
-          })
-        )
-        .catch(errors => {});
+    getAllCoins(coins,remittance){
+      this.tableData = []
+      remittance? remittance : remittance == 12.75
+      coins.forEach(item => {
+        this.getTableData(item.name,remittance,item.fee)
+      });
     },
-    linkGopax(coin) {
-      console.log(coin);
-      let link =
-        "https://api.gopax.co.kr/trading-pairs/" +
-        coin.toUpperCase() +
-        "-KRW/ticker";
-      return link;
-    },
-    linkIndodax(coin) {
-      let link = "https://indodax.com/api/ticker/" + coin.toLowerCase() + "idr";
-      return link;
+    getTableData(coin,remittance,fee){
+      let that = this
+      remittance ? remittance : remittance == 12.75
+      let url = `http://185.201.8.243:3000/api/kimchi?coin=${coin}&remittance=${remittance}&fee=${fee}`
+      axios.get(url)
+      .then(function (res) {
+        that.tableData.push(res.data)
+        console.log("this.tableData")
+        // console.log(this.tableData)
+      })
+      .catch(function (err) {
+        console.log("ERROR BOSQ" + err)
+      })
     }
   },
   computed: {},
   data() {
     return {
-      selectedRemittance: 0,
-      coin: [
+      selectedRemittance: 12.75,
+      coins: [
         { name: "XRP", fee: 1 },
         { name: "XLM", fee: 0.02 },
         { name: "BCH", fee: 0.0005 },
         { name: "LTC", fee: 0.01 },
         { name: "EOS", fee: 0.1 }
       ],
-      priceIndodax: 1,
-      priceGopax: 0,
-      remittance: {
-        cukong: 12.75,
-        sentbe: 12.95,
-        hanpass: 12.8
-      },
+      remittance: [
+        {name: "cukong", value: 12.75},
+        {name: "sentbe", value: 12.95},
+        {name: "hanpass", value: 12.8},
+      ],
       tableData: []
     };
   }

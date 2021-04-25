@@ -1000,7 +1000,7 @@
     std-env "^2.3.0"
     ufo "^0.6.10"
 
-"@nuxt/core@2.15.4":
+"@nuxt/core@2.15.4", "@nuxt/core@^2.15.4":
   version "2.15.4"
   resolved "https://registry.yarnpkg.com/@nuxt/core/-/core-2.15.4.tgz#73dee1a03ba82bad745b23e5c72e66f9c73b29d9"
   integrity sha512-SM+mEE7X3RgO+cyD0VP62pJ9Pd9KUAGDka32uaQAGEwGdRyoz1g1jUayzfnut75Pk0s96zuOmsD+uwdIGTU0vQ==

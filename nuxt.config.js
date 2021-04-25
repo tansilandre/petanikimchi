@@ -54,8 +54,7 @@ export default {
     // proxyHeaders: false
   },
   server:{
-    host:"192.168.2.85",
-    port:8000
+    port:3000
   }
   // proxy: {
   //   '/api/': { target: 'https://api.gopax.co.kr/', changeOrigin: false }
